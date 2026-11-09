@@ -86,7 +86,7 @@ export function createRenderer(canvas: HTMLCanvasElement): {
       ctx.stroke();
       const ball = state.ball.position;
       ctx.beginPath();
-      ctx.arc(ball.x * k, ball.y * k, TUNING.ballRadius * k, 0, Math.PI * 2);
+      ctx.arc(px(ball.x), px(ball.y), TUNING.ballRadius * k, 0, Math.PI * 2);
       ctx.fillStyle = BALL_FILL;
       ctx.fill();
     },

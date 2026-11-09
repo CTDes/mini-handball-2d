@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(factory-job *)",
+      "Bash(factory-gate *)",
+      "Bash(factory/checks.sh)",
+      "Bash(./factory/checks.sh)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git status *)",
+      "Bash(git fetch *)",
+      "Bash(git merge *)",
+      "Bash(git merge-base *)",
+      "Bash(git rev-parse *)",
+      "Edit(/.claude/worktrees/**)",
+      "Edit(/factory/jobs/**)",
+      "Bash(npm ci*)",
+      "Bash(npm run *)",
+      "Bash(npm test*)",
+      "Bash(npx vitest *)",
+      "Bash(npx prettier --check *)",
+      "Bash(npx eslint *)",
+      "Bash(npx tsc *)"
+    ],
+    "deny": [
+      "Bash(git push *)"
+    ]
+  },
+  "extraKnownMarketplaces": {
+    "ctdes-factory": {
+      "source": {
+        "source": "github",
+        "repo": "CTDes/software-factory"
+      },
+      "autoUpdate": true
+    }
+  }
+}

@@ -7,14 +7,14 @@ spec: "002-m1-walking-skeleton-the-attacker-on-the"
 stage: "merging"
 risk: "medium"
 surfaces: ["sim", "input", "ui"]
-rounds: 1
+rounds: 2
 created: "2026-11-09T18:44:42+01:00"
-updated: "2026-11-09T18:48:13+01:00"
+updated: "2026-11-09T18:50:09+01:00"
 ---
 
 # #3 The attacker moves on an empty pitch with the keyboard
 
-`003-the-attacker-moves-on-an-empty-pitch-wit` · ticket · stage merging · risk medium · surfaces sim, input, ui · 1 round · spec [002-m1-walking-skeleton-the-attacker-on-the](002-m1-walking-skeleton-the-attacker-on-the.md)
+`003-the-attacker-moves-on-an-empty-pitch-wit` · ticket · stage merging · risk medium · surfaces sim, input, ui · 2 rounds · spec [002-m1-walking-skeleton-the-attacker-on-the](002-m1-walking-skeleton-the-attacker-on-the.md)
 
 ## Issue
 
@@ -142,6 +142,78 @@ Out of scope: goal area and its push-out, ball, pitch module markings, mouse, ai
 #### Security
 Not required (no `security` surface).
 
+### Merge
+
+**MERGE:** GATE-FAIL
+
+#### Gate
+
+After merging origin/spec/002-m1-walking-skeleton-the-attacker-on-the, the gate fails. Details in `factory/jobs/003-the-attacker-moves-on-an-empty-pitch-wit/round-1/merge-checks.md`.
+
+```text
+
+==> install dependencies (npm ci)
+
+added 189 packages in 599ms
+
+==> format check (prettier --check)
+Checking formatting...
+[[33mwarn[39m] docs/history/003-the-attacker-moves-on-an-empty-pitch-wit.md
+[[33mwarn[39m] Code style issues found in the above file. Run Prettier with --write to fix.
+```
+
+## Round 2
+
+### Build
+
+**STATUS:** READY
+
+#### Evidence
+
+- C1: src/sim/geometry.test.ts::`add sums components` — add, subtract, scale component-wise
+- C2: src/sim/geometry.test.ts::`is the Euclidean length` — length of (3,4) and zero
+- C3: src/sim/geometry.test.ts::`returns the zero vector for the zero vector` — normalize unit and zero cases
+- C4: src/sim/geometry.test.ts::`moves a point beyond a corner onto the corner` — clampToRect inside, sides, corners
+- C5: src/sim/state.test.ts::`places the attacker at the start position with tick 0 and the seed` — initial state
+- C6: src/sim/tick.test.ts::`has zero movement and is not shooting` — NO_INTENT
+- C7: src/sim/tick.test.ts::`moves right by speed x tick duration` — 0.1 m right, y unchanged
+- C8: src/sim/tick.test.ts::`moves diagonally the same distance` — normalised diagonal
+- C9: src/sim/tick.test.ts::`clamps out-of-range movement` — (5,0) equals (1,0), bounded displacement
+- C10: src/sim/tick.test.ts::`keeps the attacker's circle inside the pitch against each edge` — four edges
+- C11: src/sim/tick.test.ts::`leaves the position unchanged with NO_INTENT` — no movement
+- C12: src/sim/tick.test.ts::`increments the tick, keeps the seed, emits no events and does not mutate` — tick bookkeeping
+
+### Gate
+
+**GATE:** PASS · **PROTECTED:** none
+
+#### Summary
+
+- checks.sh: OK
+- Protected paths modified or deleted: 0
+- Evidence problems: 0
+
+### Review
+
+**VERDICT:** PASS
+
+#### Standards
+- src/main.ts:9: header HTML is built by interpolating `texts` constants into `innerHTML`. The values are constants, so this is safe. [non-blocking]
+- src/render/index.ts:23: the `120` px reserved for the header is an unnamed magic number. The plan says colours must be constants, so this is only a nit. [non-blocking]
+
+#### Spec
+- C1 to C12 are each covered by a test in `geometry.test.ts`, `state.test.ts` and `tick.test.ts`, and the implementation matches. `tick` clamps components, normalises when longer than 1, scales by speed times tick duration and adds the step. The rectangle clamp is a separate step, as the plan's notes ask. `tick` is immutable and returns `events: []`.
+- Adapters match the plan. The input handles WASD and arrows with opposite keys cancelling, and calls `preventDefault` on arrows. The renderer uses `devicePixelRatio`, resizes on window resize and ignores `alpha`. `main` runs a 60 Hz accumulator with a 0.25 s frame cap, and `createRng(Date.now())` is passed to every tick.
+- Extra scope, minor. `.prettierignore` gains `docs/history/`, the input adapter clears held keys on window `blur`, and there is an extra NaN/Infinity test. These are harmless and do not break the "never throws" requirement. [non-blocking]
+
+#### Architecture
+- The `docs/architecture.md` table was updated to match the built exports: `Rect`, `subtract`, `Intent` without `restart`, `createInput()` with no arguments, `createRenderer` without `viewport`, and `texts`. This matches the plan.
+- `GameEvent` is now listed under both `src/sim/tick` and `src/sim/rules`. When `rules` is built, the ownership of `GameEvent` should be settled. [non-blocking]
+- Dependencies are fine. `sim` imports nothing outside `sim`, and `render` and `input` import only sim types and constants. No new runtime dependencies.
+
+#### Security
+Not required for this job.
+
 ## Timeline
 
 | Time | From | To | Reason |
@@ -155,3 +227,11 @@ Not required (no `security` surface).
 | 2026-11-09T18:47:44+01:00 | gate | review | GATE PASS |
 | 2026-11-09T18:47:49+01:00 | review | review | start review |
 | 2026-11-09T18:48:13+01:00 | review | merging | PASS |
+| 2026-11-09T18:48:26+01:00 | merging | merging | start merge |
+| 2026-11-09T18:48:32+01:00 | merging | build | gate red after merging base |
+| 2026-11-09T18:48:42+01:00 | build | build | start build |
+| 2026-11-09T18:49:19+01:00 | build | gate | READY |
+| 2026-11-09T18:49:24+01:00 | gate | gate | start gate |
+| 2026-11-09T18:49:32+01:00 | gate | review | GATE PASS |
+| 2026-11-09T18:49:37+01:00 | review | review | start review |
+| 2026-11-09T18:50:09+01:00 | review | merging | PASS |

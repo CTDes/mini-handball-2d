@@ -52,15 +52,18 @@ describe("tick", () => {
 
   it("keeps the attacker's circle inside the pitch against each edge", () => {
     const r = TUNING.attackerRadius;
-    const push = (x: number, y: number) => {
-      let s = s0;
+    const push = (x: number, y: number, from = s0) => {
+      let s = from;
       for (let i = 0; i < 400; i++) s = tick(s, move(x, y), rng).state;
-      return s.attacker.position;
+      return s;
     };
-    expect(push(-1, 0).x).toBeCloseTo(r);
-    expect(push(1, 0).x).toBeCloseTo(TUNING.pitchWidth - r);
-    expect(push(0, -1).y).toBeCloseTo(r);
-    expect(push(0, 1).y).toBeCloseTo(TUNING.pitchLength - r);
+    const atLeftEdge = push(-1, 0);
+    expect(atLeftEdge.attacker.position.x).toBeCloseTo(r);
+    expect(push(1, 0).attacker.position.x).toBeCloseTo(TUNING.pitchWidth - r);
+    // The top edge is reached from the left edge, beside the goal area, which keeps the
+    // attacker out of the centre of the pitch's top (see the goal area rule).
+    expect(push(0, -1, atLeftEdge).attacker.position.y).toBeCloseTo(r);
+    expect(push(0, 1).attacker.position.y).toBeCloseTo(TUNING.pitchLength - r);
   });
 
   it("leaves the position unchanged with NO_INTENT", () => {

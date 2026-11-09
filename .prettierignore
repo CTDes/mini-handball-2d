@@ -5,3 +5,4 @@ package-lock.json
 .claude/
 factory/jobs/
 docs/requirements/
+docs/history/

@@ -7,14 +7,14 @@ spec: "002-m1-walking-skeleton-the-attacker-on-the"
 stage: "merging"
 risk: "medium"
 surfaces: ["sim", "render"]
-rounds: 1
+rounds: 2
 created: "2026-11-09T18:44:43+01:00"
-updated: "2026-11-09T18:55:39+01:00"
+updated: "2026-11-09T18:57:36+01:00"
 ---
 
 # #4 Pitch markings: goal, posts, goal area and free-throw line
 
-`004-pitch-markings-goal-posts-goal-area-and` · ticket · stage merging · risk medium · surfaces sim, render · 1 round · spec [002-m1-walking-skeleton-the-attacker-on-the](002-m1-walking-skeleton-the-attacker-on-the.md)
+`004-pitch-markings-goal-posts-goal-area-and` · ticket · stage merging · risk medium · surfaces sim, render · 2 rounds · spec [002-m1-walking-skeleton-the-attacker-on-the](002-m1-walking-skeleton-the-attacker-on-the.md)
 
 ## Issue
 
@@ -166,6 +166,56 @@ No findings. C1-C7 are covered by `src/sim/pitch.test.ts` and satisfied by `pitc
 #### Architecture
 No findings. `src/sim/pitch.ts` depends only on `geometry` and `tuning`, so `src/sim` stays pure. The render adapter reads `PITCH` rather than raw tuning numbers. The `pitch` and `tuning` rows in `docs/architecture.md` are updated to the exported names (`pitchFrom`, `PITCH`, `Ellipse`, `Pitch`).
 
+### Merge
+
+**MERGE:** CONFLICT
+
+#### Conflicts
+
+Merging origin/spec/002-m1-walking-skeleton-the-attacker-on-the into factory/004-pitch-markings-goal-posts-goal-area-and:
+
+- docs/architecture.md
+- src/sim/tuning.ts
+
+## Round 2
+
+### Build
+
+**STATUS:** READY
+
+#### Evidence
+
+- C1: src/sim/pitch.test.ts::`places posts 3 m apart on the top edge, symmetric about the centre line` — posts at 8.5 and 11.5 on y = 0, goal line between them
+- C2: src/sim/pitch.test.ts::`is centred on the goal line centre with its edge 6 m ahead and 6 m beside each post` — (10,6), (2.5,0), (17.5,0) lie on the goal area
+- C3: src/sim/pitch.test.ts::`is centred on the goal line centre, 9 m deep and 10.5 m half-wide` — free-throw ellipse
+- C4: src/sim/pitch.test.ts::`spans the goal area's width from the goal line to 4 m` — danger zone rect
+- C5: src/sim/pitch.test.ts::`moves the posts with the goal width, keeping them symmetric` — new goal width
+- C6: src/sim/pitch.test.ts::`recentres every shape on a new pitch width` — new pitch width
+- C7: src/sim/pitch.test.ts::`takes goal area, free-throw and danger zone sizes from tuning` — semi-axes and depth follow tuning
+
+### Gate
+
+**GATE:** PASS · **PROTECTED:** none
+
+#### Summary
+
+- checks.sh: OK
+- Protected paths modified or deleted: 0
+- Evidence problems: 0
+
+### Review
+
+**VERDICT:** PASS
+
+#### Standards
+No findings. Non-blocking: src/render/index.ts repeats the pitch-rectangle pixel arguments (`px(0), px(0), PITCH.width * k, PITCH.length * k`) three times and the goal rect arguments twice. A local helper would tidy it. Judgement only.
+
+#### Spec
+No findings. C1-C7 are each covered by a test in src/sim/pitch.test.ts and satisfied by `pitchFrom` in src/sim/pitch.ts. The tuning constants have the spec values. `tick` is untouched. The render order matches the plan. The goal depth and post radius are renderer constants, which the plan allows. build.md evidence is in the required format. No extra scope.
+
+#### Architecture
+No findings. src/sim/pitch.ts depends only on geometry and tuning, so sim stays pure. The renderer reads PITCH, not raw tuning numbers. The pitch and tuning rows in docs/architecture.md match the exported names (`pitchFrom`, `PITCH`, `Ellipse`, `Pitch`).
+
 ## Human feedback
 
 ### rework-1
@@ -206,3 +256,11 @@ COMMENT>>>
 | 2026-11-09T18:55:11+01:00 | gate | review | GATE PASS |
 | 2026-11-09T18:55:16+01:00 | review | review | start review |
 | 2026-11-09T18:55:39+01:00 | review | merging | PASS |
+| 2026-11-09T18:55:45+01:00 | merging | merging | start merge |
+| 2026-11-09T18:55:48+01:00 | merging | build | merge conflict |
+| 2026-11-09T18:55:53+01:00 | build | build | start build |
+| 2026-11-09T18:56:52+01:00 | build | gate | READY |
+| 2026-11-09T18:56:58+01:00 | gate | gate | start gate |
+| 2026-11-09T18:57:10+01:00 | gate | review | GATE PASS |
+| 2026-11-09T18:57:14+01:00 | review | review | start review |
+| 2026-11-09T18:57:36+01:00 | review | merging | PASS |

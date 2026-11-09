@@ -1,0 +1,8 @@
+# software factory
+factory/jobs/
+.claude/worktrees/
+
+# node
+node_modules/
+dist/
+coverage/

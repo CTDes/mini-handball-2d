@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mini Handball 2D</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body class="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center gap-4 p-4">
+    <header id="scoreboard" class="w-full max-w-4xl"></header>
+    <main class="w-full max-w-4xl flex-1 flex items-center justify-center">
+      <canvas id="pitch" class="w-full rounded-xl bg-slate-800 shadow-xl"></canvas>
+    </main>
+    <footer id="controls" class="w-full max-w-4xl"></footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

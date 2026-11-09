@@ -6,6 +6,7 @@ const FLOOR = "#2b6cb0";
 const OUTLINE = "#f7fafc";
 const ATTACKER_FILL = "#ed8936";
 const ATTACKER_OUTLINE = "#1a202c";
+const BALL_FILL = "#f7fafc";
 
 /** Canvas renderer: square pitch sized to the container, capped by the window height. */
 export function createRenderer(canvas: HTMLCanvasElement): {
@@ -43,6 +44,11 @@ export function createRenderer(canvas: HTMLCanvasElement): {
       ctx.strokeStyle = ATTACKER_OUTLINE;
       ctx.lineWidth = Math.max(1, k * 0.04);
       ctx.stroke();
+      const ball = state.ball.position;
+      ctx.beginPath();
+      ctx.arc(ball.x * k, ball.y * k, TUNING.ballRadius * k, 0, Math.PI * 2);
+      ctx.fillStyle = BALL_FILL;
+      ctx.fill();
     },
   };
 }

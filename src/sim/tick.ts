@@ -1,7 +1,7 @@
 import { add, clampToRect, length, scale, type Vec2 } from "./geometry";
 import type { Intent } from "./intent";
 import type { Rng } from "./rng";
-import type { GameState } from "./state";
+import { carriedBallPosition, type GameState } from "./state";
 import { TUNING } from "./tuning";
 
 /** Placeholder: no events exist yet in M1. */
@@ -29,7 +29,12 @@ export function tick(
     max: { x: TUNING.pitchWidth - r, y: TUNING.pitchLength - r },
   });
   return {
-    state: { ...state, attacker: { ...state.attacker, position }, tick: state.tick + 1 },
+    state: {
+      ...state,
+      attacker: { ...state.attacker, position },
+      ball: { position: carriedBallPosition(position), held: true },
+      tick: state.tick + 1,
+    },
     events: [],
   };
 }

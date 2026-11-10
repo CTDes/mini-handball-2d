@@ -20,7 +20,6 @@ const ATTACKER_FILL = "#ed8936";
 const ATTACKER_OUTLINE = "#1a202c";
 const BALL_FILL = "#f7fafc";
 const AIM_LINE = "#fbd38d";
-const RETICLE_RADIUS = 0.25;
 const BAR_BACK = "#1a202c";
 const BAR_FILL = "#f56565";
 
@@ -111,11 +110,11 @@ export function createRenderer(canvas: HTMLCanvasElement): {
         ctx.lineTo(px(state.aim.x), px(state.aim.y));
         ctx.strokeStyle = AIM_LINE;
         ctx.lineWidth = Math.max(1, k * 0.05);
-        ctx.setLineDash([k * 0.3, k * 0.2]);
+        ctx.setLineDash([k * TUNING.aimDash, k * TUNING.aimGap]);
         ctx.stroke();
         ctx.setLineDash([]);
         ctx.beginPath();
-        ctx.arc(px(state.aim.x), px(state.aim.y), RETICLE_RADIUS * k, 0, Math.PI * 2);
+        ctx.arc(px(state.aim.x), px(state.aim.y), TUNING.aimReticleRadius * k, 0, Math.PI * 2);
         ctx.stroke();
       }
       if (state.phase === "charging") {

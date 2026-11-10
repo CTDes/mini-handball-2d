@@ -94,8 +94,9 @@ describe("purity", () => {
     for (let i = 0; i < 400; i++) {
       const intent = intents[Math.min(i, 2)] ?? NO_INTENT;
       const before = structuredClone(s);
-      s = tick(s, intent, rng).state;
-      expect(before).toEqual(structuredClone(before));
+      const next = tick(s, intent, rng).state;
+      expect(s).toEqual(before);
+      s = next;
     }
     const frozen = structuredClone(s);
     tick(s, hold, rng);

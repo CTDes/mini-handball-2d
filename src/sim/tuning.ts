@@ -28,10 +28,14 @@ export const TUNING = {
   maxShotSpeed: 22,
   /** Seconds for a full power cycle 0 -> 1 -> 0 while the shoot control is held. */
   powerSweepDuration: 1.2,
-  /** Seconds the out ball rests before the ball returns to the attacker (converted to ticks). */
+  /** Seconds the ball rests after any outcome before it returns to the attacker (converted to ticks). */
   resolvedPause: 1,
   /** Power bar size and offset above the attacker's centre, in metres. */
   powerBarWidth: 1.6,
   powerBarHeight: 0.25,
   powerBarOffset: 0.9,
+  /** Aim line reticle radius and dash pattern (dash, gap), in metres. */
+  aimReticleRadius: 0.25,
+  aimDash: 0.3,
+  aimGap: 0.2,
 } as const;

@@ -33,10 +33,7 @@ export type GameEvent =
   | { readonly type: "goal"; readonly position: Vec2 }
   | { readonly type: "play-reset"; readonly position: Vec2 };
 
-const pitchRect = {
-  min: { x: 0, y: 0 },
-  max: { x: TUNING.pitchWidth, y: TUNING.pitchLength },
-};
+const pitchRect = { min: { x: 0, y: 0 }, max: { x: PITCH.width, y: PITCH.length } };
 /** Cap on post contacts within one tick, so a tick always ends. */
 const maxContacts = 4;
 const sweepTicks = Math.max(2, Math.round(TUNING.powerSweepDuration / TUNING.tickDuration));

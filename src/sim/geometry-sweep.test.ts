@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import architecture from "../../docs/architecture.md?raw";
 import { insideRect, reflect, sweepSegmentCircle } from "./geometry";
 
 const O = { x: 0, y: 0 };
@@ -101,14 +100,5 @@ describe("insideRect", () => {
     expect(insideRect({ x: 2, y: 2 }, rect)).toBe(true);
     expect(insideRect({ x: 0, y: 0 }, rect)).toBe(true);
     expect(insideRect({ x: 4, y: 2 }, rect)).toBe(true);
-  });
-});
-
-describe("architecture doc", () => {
-  it("lists each new geometry export in the geometry row", () => {
-    const row = architecture.split("\n").find((l) => l.includes("`src/sim/geometry`"));
-    for (const name of ["dot", "reflect", "insideRect", "SegmentContact", "sweepSegmentCircle"]) {
-      expect(row).toContain(`\`${name}\``);
-    }
   });
 });

@@ -16,6 +16,8 @@ export const TUNING = {
   goalCentre: { x: pitchWidth / 2, y: 0 },
   attackerRadius,
   ballRadius,
+  /** Radius of each goal post circle (m). */
+  postRadius: 0.15,
   /** Distance from the attacker's centre to the held ball's centre. */
   carryDistance: attackerRadius + ballRadius,
   attackerSpeed: 6,

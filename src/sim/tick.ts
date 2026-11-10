@@ -6,8 +6,11 @@ import {
   normalize,
   subtract,
   pushOutOfEllipse,
+  reflect,
+  sweepSegmentCircle,
   scale,
   type Ellipse,
+  type SegmentContact,
   type Vec2,
 } from "./geometry";
 import type { Intent } from "./intent";
@@ -16,7 +19,7 @@ import type { Rng } from "./rng";
 import { carriedBallPosition, type GameState } from "./state";
 import { TUNING } from "./tuning";
 
-/** What happened in a tick. `post-hit` and `goal` arrive with the next ticket. */
+/** What happened in a tick. */
 export type GameEvent =
   | {
       readonly type: "shot";
@@ -25,12 +28,16 @@ export type GameEvent =
       readonly velocity: Vec2;
     }
   | { readonly type: "out"; readonly position: Vec2 }
+  | { readonly type: "post-hit"; readonly position: Vec2 }
+  | { readonly type: "goal"; readonly position: Vec2 }
   | { readonly type: "play-reset"; readonly position: Vec2 };
 
 const pitchRect = {
   min: { x: 0, y: 0 },
   max: { x: TUNING.pitchWidth, y: TUNING.pitchLength },
 };
+/** Cap on post contacts within one tick, so a tick always ends. */
+const maxContacts = 4;
 const sweepTicks = Math.max(2, Math.round(TUNING.powerSweepDuration / TUNING.tickDuration));
 const pauseTicks = Math.max(1, Math.round(TUNING.resolvedPause / TUNING.tickDuration));
 
@@ -124,11 +131,41 @@ export function tick(
       };
     }
     case "flight": {
-      const next = add(state.ball.position, scale(state.ball.velocity, TUNING.tickDuration));
-      if (insideRect(next, pitchRect)) {
+      const events: GameEvent[] = [];
+      const reach = TUNING.postRadius + TUNING.ballRadius;
+      let at = state.ball.position;
+      let velocity = state.ball.velocity;
+      let remaining = TUNING.tickDuration;
+      let settled = false;
+      for (let contacts = 0; contacts < maxContacts && !settled; contacts++) {
+        const target = add(at, scale(velocity, remaining));
+        let first: SegmentContact | null = null;
+        for (const post of PITCH.posts) {
+          const hit = sweepSegmentCircle(at, target, post, reach);
+          if (hit && (first === null || hit.t < first.t)) first = hit;
+        }
+        if (first === null) {
+          at = target;
+          settled = true;
+        } else {
+          velocity = reflect(velocity, first.normal);
+          remaining *= 1 - first.t;
+          at = first.point;
+          events.push({ type: "post-hit", position: first.point });
+        }
+      }
+      const inMouth =
+        at.y < 0 &&
+        at.x > PITCH.posts[0].x + TUNING.postRadius &&
+        at.x < PITCH.posts[1].x - TUNING.postRadius;
+      if (inMouth && at.y <= -TUNING.ballRadius) {
+        events.push({ type: "goal", position: at });
+      } else if (!inMouth && !insideRect(at, pitchRect)) {
+        events.push({ type: "out", position: at });
+      } else {
         return {
-          state: { ...base, ball: { position: next, held: false, velocity: state.ball.velocity } },
-          events: [],
+          state: { ...base, ball: { position: at, held: false, velocity } },
+          events,
         };
       }
       return {
@@ -136,9 +173,9 @@ export function tick(
           ...base,
           phase: "resolved",
           resolvedTicks: pauseTicks,
-          ball: { position: next, held: false, velocity: { x: 0, y: 0 } },
+          ball: { position: at, held: false, velocity: { x: 0, y: 0 } },
         },
-        events: [{ type: "out", position: next }],
+        events,
       };
     }
     case "resolved": {

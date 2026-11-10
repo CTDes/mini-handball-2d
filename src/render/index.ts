@@ -9,7 +9,6 @@ const MARGIN = 2;
 const GOAL_DEPTH = 1.5;
 /** Pixels of window height left for the page header above the canvas. */
 const HEADER_ALLOWANCE = 120;
-const POST_RADIUS = 0.15;
 const SURROUND = "#1a365d";
 const GOAL_AREA = "#3b82c4";
 const LINE = "#bee3f8";
@@ -90,7 +89,7 @@ export function createRenderer(canvas: HTMLCanvasElement): {
       ctx.fillStyle = POST;
       for (const post of PITCH.posts) {
         ctx.beginPath();
-        ctx.arc(px(post.x), px(post.y), POST_RADIUS * k, 0, Math.PI * 2);
+        ctx.arc(px(post.x), px(post.y), TUNING.postRadius * k, 0, Math.PI * 2);
         ctx.fill();
       }
       const { x, y } = state.attacker.position;

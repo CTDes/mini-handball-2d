@@ -7,14 +7,14 @@ spec: "010-m2-shooting-and-outcomes"
 stage: "merging"
 risk: "medium"
 surfaces: ["sim"]
-rounds: 1
+rounds: 2
 created: "2026-11-10T09:44:53+01:00"
-updated: "2026-11-10T09:49:01+01:00"
+updated: "2026-11-10T09:50:42+01:00"
 ---
 
 # #11 Geometry helpers for ball flight: segment sweep, reflection, point in rectangle
 
-`011-geometry-helpers-for-ball-flight-segment` · ticket · stage merging · risk medium · surfaces sim · 1 round · spec [010-m2-shooting-and-outcomes](010-m2-shooting-and-outcomes.md)
+`011-geometry-helpers-for-ball-flight-segment` · ticket · stage merging · risk medium · surfaces sim · 2 rounds · spec [010-m2-shooting-and-outcomes](010-m2-shooting-and-outcomes.md)
 
 ## Issue
 
@@ -160,6 +160,63 @@ No findings. The helpers are pure and documented, and geometry.ts has no tuning 
 #### Architecture
 No findings. The change touches only `src/sim/geometry` and its architecture row, which is updated in the same diff. There are no new dependencies.
 
+### Merge
+
+**MERGE:** CONFLICT
+
+#### Conflicts
+
+Merging origin/spec/010-m2-shooting-and-outcomes into factory/011-geometry-helpers-for-ball-flight-segment:
+
+- docs/architecture.md
+
+## Round 2
+
+### Build
+
+**STATUS:** READY
+
+#### Evidence
+
+- C1: src/sim/geometry-sweep.test.ts::`returns nothing when the closest approach is beyond the radius` — miss and short segment return null
+- C2: src/sim/geometry-sweep.test.ts::`returns the first-contact fraction for an axis-aligned entry` — t = 0.4, point on circle and segment
+- C3: src/sim/geometry-sweep.test.ts::`gives a unit normal pointing from the centre to the contact point on oblique entry` — unit outward normal
+- C4: src/sim/geometry-sweep.test.ts::`returns contact at t = 0 for a segment starting strictly inside` — t=0, point is start
+- C5: src/sim/geometry-sweep.test.ts::`hits a tangent segment at the tangent point with a perpendicular normal` — tangent hit
+- C6: src/sim/geometry-sweep.test.ts::`ignores a segment starting on the circle and moving away` — no re-catch
+- C7: src/sim/geometry-sweep.test.ts::`negates the normal component and keeps the tangential one` — oblique reflect
+- C8: src/sim/geometry-sweep.test.ts::`returns the original vector when applied twice` — involution
+- C9: src/sim/geometry-sweep.test.ts::`is true on every edge and corner` — edges inclusive
+- C10: src/sim/geometry-sweep.test.ts::`lists each new geometry export in the geometry row` — architecture row names every new export
+
+### Gate
+
+**GATE:** PASS · **PROTECTED:** none
+
+#### Summary
+
+- checks.sh: OK
+- Protected paths modified or deleted: 0
+- Evidence problems: 0
+
+### Review
+
+**VERDICT:** PASS
+
+#### Standards
+No findings. Helpers are small, named clearly and documented. The degenerate-normal choice is commented as the plan asked.
+
+#### Spec
+No findings. The diff adds only `dot`, `reflect`, `insideRect`, `SegmentContact` and `sweepSegmentCircle` in `src/sim/geometry.ts`, plus a new test file `src/sim/geometry-sweep.test.ts`. The existing test files are untouched.
+- C1 to C6: the sweep logic matches them. It returns null for a miss or a short segment, and the first root t for an entry. It returns t=0 with the start point and a unit normal when the start is strictly inside. A tangent segment gives disc=0, so it hits. A segment starting on the circle and moving away returns null through the `c <= EDGE_TOLERANCE` branch with `b >= 0`.
+- C7 to C9: `reflect` and `insideRect` follow the plan's definitions, with inclusive edges.
+- C10: the geometry row of `docs/architecture.md` lists every new export by name and drops "segment helpers arrive later".
+- The rest of the `architecture.md` diff is whitespace re-padding of the table. This is non-blocking noise.
+- No extra scope.
+
+#### Architecture
+No findings. `geometry.ts` has no new imports and no tuning or pitch dependency. The public interface change is documented in `docs/architecture.md` in the same diff.
+
 ## Timeline
 
 | Time | From | To | Reason |
@@ -174,3 +231,11 @@ No findings. The change touches only `src/sim/geometry` and its architecture row
 | 2026-11-10T09:48:14+01:00 | gate | review | GATE PASS |
 | 2026-11-10T09:48:23+01:00 | review | review | start review |
 | 2026-11-10T09:49:01+01:00 | review | merging | PASS |
+| 2026-11-10T09:49:07+01:00 | merging | merging | start merge |
+| 2026-11-10T09:49:09+01:00 | merging | build | merge conflict |
+| 2026-11-10T09:49:13+01:00 | build | build | start build |
+| 2026-11-10T09:50:00+01:00 | build | gate | READY |
+| 2026-11-10T09:50:04+01:00 | gate | gate | start gate |
+| 2026-11-10T09:50:16+01:00 | gate | review | GATE PASS |
+| 2026-11-10T09:50:20+01:00 | review | review | start review |
+| 2026-11-10T09:50:42+01:00 | review | merging | PASS |

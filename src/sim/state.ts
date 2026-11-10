@@ -31,6 +31,8 @@ export interface GameState {
   readonly goals: number;
   /** Shots released this session. */
   readonly shots: number;
+  /** False from release until a held tick without the shoot control: charging needs a fresh press. */
+  readonly shootArmed: boolean;
   readonly tick: number;
   readonly seed: number;
 }
@@ -53,6 +55,7 @@ export function initialState(seed: number): GameState {
     aim: { ...TUNING.goalCentre },
     goals: 0,
     shots: 0,
+    shootArmed: true,
     tick: 0,
     seed,
   };

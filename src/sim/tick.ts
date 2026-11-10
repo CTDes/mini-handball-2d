@@ -101,13 +101,16 @@ export function tick(
 
   switch (state.phase) {
     case "held":
-      if (intent.shootHeld) {
+      if (intent.shootHeld && state.shootArmed) {
         return {
           state: { ...base, phase: "charging", power: 0, chargeTicks: 0, ball: carried() },
           events: [],
         };
       }
-      return { state: { ...base, ball: carried() }, events: [] };
+      return {
+        state: { ...base, shootArmed: state.shootArmed || !intent.shootHeld, ball: carried() },
+        events: [],
+      };
     case "charging": {
       if (intent.shootHeld) {
         const chargeTicks = state.chargeTicks + 1;
@@ -130,6 +133,7 @@ export function tick(
           ...recordShot(state),
           phase: "flight",
           chargeTicks: 0,
+          shootArmed: false,
           ball: { position: ballPosition, held: false, velocity },
         },
         events: [{ type: "shot", position: ballPosition, power: state.power, velocity }],

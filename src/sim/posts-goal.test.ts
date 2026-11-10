@@ -62,14 +62,31 @@ describe("post rebound", () => {
     expect(at(log, i).state.ball.position.y).toBeCloseTo(ev.position.y + out.y * dt * frac);
   });
 
-  it("never lets the ball closer than post plus ball radius, even when the tick skips over it", () => {
-    // Step is 22/60 = 0.37 m: start and end of one tick straddle the post.
+  it("never lets the ball closer than post plus ball radius, at max speed", () => {
+    // Head-on shot at max speed.
     const s = flying({ x: left.x, y: 0.5 }, { x: 0, y: -TUNING.maxShotSpeed });
     for (const { state } of run(s, 30)) {
       for (const post of PITCH.posts) {
         const d = Math.hypot(state.ball.position.x - post.x, state.ball.position.y - post.y);
         expect(d).toBeGreaterThanOrEqual(reach - 1e-9);
       }
+    }
+  });
+});
+
+describe("post rebound tunnelling", () => {
+  it("catches a post crossed within one tick whose start and end are both outside the circle", () => {
+    // Offset 0.28 m: the chord is 0.22 m but the step is 0.37 m, so the tick jumps over it.
+    const start = { x: left.x + 0.28, y: 0.2 };
+    const s = flying(start, { x: 0, y: -TUNING.maxShotSpeed });
+    const end = { x: start.x, y: start.y - TUNING.maxShotSpeed * dt };
+    expect(Math.hypot(start.x - left.x, start.y - left.y)).toBeGreaterThan(reach);
+    expect(Math.hypot(end.x - left.x, end.y - left.y)).toBeGreaterThan(reach);
+    const log = run(s, 10);
+    expect(at(log, 0).events.map((e) => e.type)).toContain("post-hit");
+    for (const { state } of log) {
+      const d = Math.hypot(state.ball.position.x - left.x, state.ball.position.y - left.y);
+      expect(d).toBeGreaterThanOrEqual(reach - 1e-9);
     }
   });
 });

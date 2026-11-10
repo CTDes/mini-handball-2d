@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import architecture from "../../docs/architecture.md?raw";
 import { insideRect, reflect, sweepSegmentCircle } from "./geometry";
 
 const O = { x: 0, y: 0 };
@@ -104,11 +105,8 @@ describe("insideRect", () => {
 });
 
 describe("architecture doc", () => {
-  it("lists each new geometry export in the geometry row", async () => {
-    const { readFileSync } = await import("node:fs");
-    const row = readFileSync("docs/architecture.md", "utf8")
-      .split("\n")
-      .find((l) => l.includes("`src/sim/geometry`"));
+  it("lists each new geometry export in the geometry row", () => {
+    const row = architecture.split("\n").find((l) => l.includes("`src/sim/geometry`"));
     for (const name of ["dot", "reflect", "insideRect", "SegmentContact", "sweepSegmentCircle"]) {
       expect(row).toContain(`\`${name}\``);
     }

@@ -16,9 +16,26 @@ export const TUNING = {
   goalCentre: { x: pitchWidth / 2, y: 0 },
   attackerRadius,
   ballRadius,
+  /** Radius of each goal post circle (m). */
+  postRadius: 0.15,
   /** Distance from the attacker's centre to the held ball's centre. */
   carryDistance: attackerRadius + ballRadius,
   attackerSpeed: 6,
   tickDuration: 1 / 60,
   attackerStart: { x: 10, y: 13 },
+  /** Ball speed at power 0 and at power 1 (m/s). */
+  minShotSpeed: 8,
+  maxShotSpeed: 22,
+  /** Seconds for a full power cycle 0 -> 1 -> 0 while the shoot control is held. */
+  powerSweepDuration: 1.2,
+  /** Seconds the ball rests after any outcome before it returns to the attacker (converted to ticks). */
+  resolvedPause: 1,
+  /** Power bar size and offset above the attacker's centre, in metres. */
+  powerBarWidth: 1.6,
+  powerBarHeight: 0.25,
+  powerBarOffset: 0.9,
+  /** Aim line reticle radius and dash pattern (dash, gap), in metres. */
+  aimReticleRadius: 0.25,
+  aimDash: 0.3,
+  aimGap: 0.2,
 } as const;

@@ -25,6 +25,13 @@ const forbidden: Ellipse = {
   ry: PITCH.goalArea.ry + TUNING.attackerRadius,
 };
 
+/** A non-finite aim component falls back to the goal centre. */
+function aimPoint(raw: Vec2): Vec2 {
+  return Number.isFinite(raw.x) && Number.isFinite(raw.y)
+    ? { x: raw.x, y: raw.y }
+    : { ...TUNING.goalCentre };
+}
+
 function movement(raw: Vec2): Vec2 {
   const v = { x: component(raw.x), y: component(raw.y) };
   const l = length(v);
@@ -50,6 +57,7 @@ export function tick(
       ...state,
       attacker: { ...state.attacker, position },
       ball: { position: carriedBallPosition(position), held: true },
+      aim: aimPoint(intent.aim),
       tick: state.tick + 1,
     },
     events: [],

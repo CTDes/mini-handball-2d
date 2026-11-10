@@ -1,6 +1,6 @@
 import type { Vec2 } from "./geometry";
 
-/** What the human asks for in a tick. Only `move` is read in M1. */
+/** What the human asks for in a tick. `move` and `aim` are read so far. */
 export interface Intent {
   readonly move: Vec2;
   readonly aim: Vec2;

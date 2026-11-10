@@ -16,7 +16,8 @@ import {
 import type { Intent } from "./intent";
 import { PITCH } from "./pitch";
 import type { Rng } from "./rng";
-import { carriedBallPosition, type GameState } from "./state";
+import { carriedBallPosition, initialState, type GameState } from "./state";
+import { recordGoal, recordShot } from "./stats";
 import { TUNING } from "./tuning";
 
 /** What happened in a tick. */
@@ -75,6 +76,9 @@ export function tick(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- the AI will use it from a later milestone
   _rng: Rng,
 ): { state: GameState; events: GameEvent[] } {
+  if (intent.restart) {
+    return { state: { ...initialState(state.seed), tick: state.tick + 1 }, events: [] };
+  }
   const step = scale(movement(intent.move), TUNING.attackerSpeed * TUNING.tickDuration);
   const moved = add(state.attacker.position, step);
   const r = TUNING.attackerRadius;
@@ -123,6 +127,7 @@ export function tick(
       return {
         state: {
           ...base,
+          ...recordShot(state),
           phase: "flight",
           chargeTicks: 0,
           ball: { position: ballPosition, held: false, velocity },
@@ -168,9 +173,11 @@ export function tick(
           events,
         };
       }
+      const scored = events.some((e) => e.type === "goal");
       return {
         state: {
           ...base,
+          ...(scored ? recordGoal(state) : {}),
           phase: "resolved",
           resolvedTicks: pauseTicks,
           ball: { position: at, held: false, velocity: { x: 0, y: 0 } },

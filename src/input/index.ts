@@ -16,9 +16,10 @@ const ARROWS = ["arrowleft", "arrowright", "arrowup", "arrowdown"];
 export function createInput(
   canvas: HTMLCanvasElement,
   toPitch: (clientX: number, clientY: number) => Vec2,
-): { current(): Intent } {
+): { current(): Intent; requestRestart(): void } {
   const held = new Set<string>();
   let mouseDown = false;
+  let restartRequested = false;
   let aim: Vec2 = { ...TUNING.goalCentre };
   canvas.addEventListener("mousemove", (e) => {
     aim = toPitch(e.clientX, e.clientY);
@@ -45,11 +46,19 @@ export function createInput(
   const axis = (neg: string[], pos: string[]): number =>
     (pos.some((k) => held.has(k)) ? 1 : 0) - (neg.some((k) => held.has(k)) ? 1 : 0);
   return {
-    current: () => ({
-      ...NO_INTENT,
-      move: { x: axis(LEFT, RIGHT), y: axis(UP, DOWN) },
-      aim,
-      shootHeld: mouseDown || held.has(" "),
-    }),
+    current: () => {
+      const restart = restartRequested;
+      restartRequested = false;
+      return {
+        ...NO_INTENT,
+        move: { x: axis(LEFT, RIGHT), y: axis(UP, DOWN) },
+        aim,
+        shootHeld: mouseDown || held.has(" "),
+        restart,
+      };
+    },
+    requestRestart: () => {
+      restartRequested = true;
+    },
   };
 }

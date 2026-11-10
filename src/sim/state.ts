@@ -27,6 +27,10 @@ export interface GameState {
   readonly chargeTicks: number;
   /** Ticks left in `resolved` before the play resets. */
   readonly resolvedTicks: number;
+  /** Goals scored this session. */
+  readonly goals: number;
+  /** Shots released this session. */
+  readonly shots: number;
   readonly tick: number;
   readonly seed: number;
 }
@@ -47,6 +51,8 @@ export function initialState(seed: number): GameState {
     chargeTicks: 0,
     resolvedTicks: 0,
     aim: { ...TUNING.goalCentre },
+    goals: 0,
+    shots: 0,
     tick: 0,
     seed,
   };

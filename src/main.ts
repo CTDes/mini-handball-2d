@@ -16,7 +16,7 @@ if (header) {
 }
 
 const renderer = createRenderer(canvas);
-const input = createInput(canvas, renderer.toPitch);
+const input = createInput(canvas, (x, y) => renderer.toPitch(x, y));
 const seed = Date.now();
 const rng = createRng(seed);
 let state = initialState(seed);

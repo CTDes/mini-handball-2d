@@ -17,8 +17,9 @@ if (header) {
 
 const input = createInput();
 const renderer = createRenderer(canvas);
-const rng = createRng(Date.now());
-let state = initialState(Date.now());
+const seed = Date.now();
+const rng = createRng(seed);
+let state = initialState(seed);
 let accumulator = 0;
 let last = performance.now();
 

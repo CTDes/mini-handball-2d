@@ -6,6 +6,8 @@ import { TUNING } from "../sim/tuning";
 /** Metres of space drawn around the pitch so the goal behind the goal line is visible. */
 const MARGIN = 2;
 const GOAL_DEPTH = 1.5;
+/** Pixels of window height left for the page header above the canvas. */
+const HEADER_ALLOWANCE = 120;
 const POST_RADIUS = 0.15;
 const SURROUND = "#1a365d";
 const GOAL_AREA = "#3b82c4";
@@ -28,7 +30,7 @@ export function createRenderer(canvas: HTMLCanvasElement): {
 
   const resize = (): void => {
     const available = canvas.parentElement?.clientWidth ?? window.innerWidth;
-    size = Math.max(1, Math.floor(Math.min(available, window.innerHeight - 120)));
+    size = Math.max(1, Math.floor(Math.min(available, window.innerHeight - HEADER_ALLOWANCE)));
     const dpr = window.devicePixelRatio || 1;
     canvas.style.width = `${String(size)}px`;
     canvas.style.height = `${String(size)}px`;

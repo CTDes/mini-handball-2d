@@ -14,6 +14,8 @@ export interface Ball {
 export interface GameState {
   readonly attacker: Attacker;
   readonly ball: Ball;
+  /** Where the human aims, in pitch metres. May lie beyond the pitch edges. */
+  readonly aim: Vec2;
   readonly tick: number;
   readonly seed: number;
 }
@@ -29,6 +31,7 @@ export function initialState(seed: number): GameState {
   return {
     attacker: { position: start },
     ball: { position: carriedBallPosition(start), held: true },
+    aim: { ...TUNING.goalCentre },
     tick: 0,
     seed,
   };

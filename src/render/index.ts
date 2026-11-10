@@ -1,5 +1,6 @@
 import type { GameState } from "../sim/state";
 import type { GameEvent } from "../sim/tick";
+import type { Vec2 } from "../sim/geometry";
 import { PITCH, type Ellipse } from "../sim/pitch";
 import { TUNING } from "../sim/tuning";
 
@@ -19,10 +20,14 @@ const OUTLINE = "#f7fafc";
 const ATTACKER_FILL = "#ed8936";
 const ATTACKER_OUTLINE = "#1a202c";
 const BALL_FILL = "#f7fafc";
+const AIM_LINE = "#fbd38d";
+const RETICLE_RADIUS = 0.25;
 
 /** Canvas renderer: square pitch sized to the container, capped by the window height. */
 export function createRenderer(canvas: HTMLCanvasElement): {
   draw(state: GameState, events: readonly GameEvent[], alpha: number): void;
+  /** Mouse position (client CSS pixels) to pitch metres; the inverse of the drawing transform. */
+  toPitch(clientX: number, clientY: number): Vec2;
 } {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("2d canvas context unavailable");
@@ -41,6 +46,14 @@ export function createRenderer(canvas: HTMLCanvasElement): {
   window.addEventListener("resize", resize);
 
   return {
+    toPitch(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const span = PITCH.width + 2 * MARGIN;
+      return {
+        x: ((clientX - rect.left) * span) / rect.width - MARGIN,
+        y: ((clientY - rect.top) * span) / rect.height - MARGIN,
+      };
+    },
     draw(state) {
       const k = canvas.width / (PITCH.width + 2 * MARGIN);
       const px = (m: number): number => (m + MARGIN) * k;
@@ -91,6 +104,19 @@ export function createRenderer(canvas: HTMLCanvasElement): {
       ctx.arc(px(ball.x), px(ball.y), TUNING.ballRadius * k, 0, Math.PI * 2);
       ctx.fillStyle = BALL_FILL;
       ctx.fill();
+      if (state.ball.held) {
+        ctx.beginPath();
+        ctx.moveTo(px(x), px(y));
+        ctx.lineTo(px(state.aim.x), px(state.aim.y));
+        ctx.strokeStyle = AIM_LINE;
+        ctx.lineWidth = Math.max(1, k * 0.05);
+        ctx.setLineDash([k * 0.3, k * 0.2]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(px(state.aim.x), px(state.aim.y), RETICLE_RADIUS * k, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     },
   };
 }

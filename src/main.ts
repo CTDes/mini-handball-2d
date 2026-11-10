@@ -15,8 +15,8 @@ if (header) {
   header.innerHTML = `<h1 class="text-2xl font-bold tracking-wide">${texts.title}</h1><p class="text-slate-300">${texts.hint}</p>`;
 }
 
-const input = createInput();
 const renderer = createRenderer(canvas);
+const input = createInput(canvas, (x, y) => renderer.toPitch(x, y));
 const seed = Date.now();
 const rng = createRng(seed);
 let state = initialState(seed);

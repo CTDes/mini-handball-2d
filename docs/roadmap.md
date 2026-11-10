@@ -16,7 +16,7 @@ as coarse milestones after it.
 
 ## Milestones
 
-### M0 · Bootstrap (by hand) — status: in progress
+### M0 · Bootstrap (by hand) — status: done (PR #1)
 
 **Stack:** TypeScript, Vite with vite-plugin-singlefile, Tailwind CSS compiled at build time,
 npm, Vitest, ESLint with typescript-eslint, Prettier in check mode, Node 22 LTS in CI.
@@ -26,7 +26,7 @@ Vitest and the single-file build, and passes on the base branch; CI runs it as a
 check; a GitHub Pages workflow publishes the build on every merge to `main`; `CLAUDE.md` lists
 the real commands. The page shows a title and an empty canvas: no game yet.
 
-### M1 · Walking skeleton: the attacker on the pitch — status: planned
+### M1 · Walking skeleton: the attacker on the pitch — status: done (spec #2, PR #7)
 
 **A human can test:** open the Pages URL; the pitch is drawn with its goal, posts, goal area
 and free-throw line; the attacker is visible holding the ball; WASD or the arrow keys move it
@@ -45,7 +45,7 @@ tunnelling).
 
 **Depends on:** M0.
 
-### M2 · Shooting and outcomes — status: planned
+### M2 · Shooting and outcomes — status: planned (next)
 
 **A human can test:** the aim line and reticle follow the mouse; holding left click or space
 shows the oscillating power bar; releasing shoots the ball at a speed matching the power; the
@@ -54,9 +54,20 @@ goal, a ball that leaves the pitch counts as out; the scoreboard shows goals, sh
 effectiveness; after each outcome the ball comes back to the attacker and the next play starts.
 No goalkeeper or defender yet, so every well-aimed shot scores.
 
-**Scope:** aim intent from the mouse adapter; power bar oscillation; the shot; ball flight and
-post rebound; goal and out outcomes; the play cycle (outcome, pause, ball returned); the
-scoreboard (goals, shots, effectiveness) in the DOM; the restart button.
+**Scope:** aim intent from the mouse adapter (cursor in pitch metres) and the aim line with its
+reticle; the power bar that oscillates while the shoot control is held and fixes the power on
+release; the shot (ball leaves the attacker along the aim line at a speed proportional to the
+power); ball flight in a straight line with elastic rebound off the posts; the goal and out
+outcomes; the play cycle (the outcome is emitted as an event, a short pause, the ball returns
+to the attacker, the next play starts); the stats (goals, shots, effectiveness) in the state and
+the scoreboard adapter that shows them; the restart intent and its button. Events become real
+in this milestone: the tick emits them and the adapters consume them.
+
+**Lessons from M1 to apply:** every tick-level behaviour that a later milestone will change
+(for example the ball returning to the attacker, which M3's saves will also trigger) should be
+tested through the outcome it produces, not through a path a later rule will block; tests are
+protected once merged. Tickets that touch the tuning module or the architecture table conflict
+when built in parallel: order them, or keep those edits in the first ticket of the chain.
 
 **Why here:** ball physics and the rules are the core loop; everything later (AI, feedback)
 only reacts to them.
@@ -115,4 +126,8 @@ Second player on the same keyboard controlling the goalkeeper or the defender. C
 
 ## Changes
 
+- 2026-11-10: M0 and M1 done. M1 took four tickets, two of them needing a second round
+  because parallel tickets both edited the tuning module and the architecture table, and one
+  needing a human to amend a protected test from an earlier ticket that the goal-area rule
+  invalidated. M2 detailed with those lessons; M3 and later unchanged.
 - 2026-11-09: first version, from the setup interview and `docs/brief.md`.

@@ -38,16 +38,20 @@ export interface Ellipse {
 const ellipseValue = (p: Vec2, e: Ellipse): number =>
   ((p.x - e.centre.x) / e.rx) ** 2 + ((p.y - e.centre.y) / e.ry) ** 2;
 
+/** Tolerance that absorbs rounding, so a point just projected onto the edge counts as on it. */
+const EDGE_TOLERANCE = 1e-9;
+
 /** True when `p` lies strictly inside the ellipse; points on the edge are outside. */
-export const insideEllipse = (p: Vec2, e: Ellipse): boolean => ellipseValue(p, e) < 1;
+export const insideEllipse = (p: Vec2, e: Ellipse): boolean =>
+  ellipseValue(p, e) < 1 - EDGE_TOLERANCE;
 
 /**
  * Moves a point inside the ellipse along the ray from the centre onto the edge; any other
  * point is returned unchanged. The centre itself goes out along +y (away from the goal line).
  */
 export function pushOutOfEllipse(p: Vec2, e: Ellipse): Vec2 {
+  if (!insideEllipse(p, e)) return p;
   const v = ellipseValue(p, e);
-  if (v >= 1) return p;
   if (v === 0) return { x: e.centre.x, y: e.centre.y + e.ry };
   return add(e.centre, scale(subtract(p, e.centre), 1 / Math.sqrt(v)));
 }

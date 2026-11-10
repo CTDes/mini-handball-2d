@@ -1,5 +1,14 @@
-import { add, clampToRect, length, scale, type Vec2 } from "./geometry";
+import {
+  add,
+  clampToRect,
+  length,
+  pushOutOfEllipse,
+  scale,
+  type Ellipse,
+  type Vec2,
+} from "./geometry";
 import type { Intent } from "./intent";
+import { PITCH } from "./pitch";
 import type { Rng } from "./rng";
 import { carriedBallPosition, type GameState } from "./state";
 import { TUNING } from "./tuning";
@@ -8,6 +17,13 @@ import { TUNING } from "./tuning";
 export type GameEvent = never;
 
 const component = (n: number): number => (Number.isNaN(n) ? 0 : Math.min(Math.max(n, -1), 1));
+
+/** The goal area grown by the attacker radius: where the attacker's centre may not be. */
+const forbidden: Ellipse = {
+  centre: PITCH.goalArea.centre,
+  rx: PITCH.goalArea.rx + TUNING.attackerRadius,
+  ry: PITCH.goalArea.ry + TUNING.attackerRadius,
+};
 
 function movement(raw: Vec2): Vec2 {
   const v = { x: component(raw.x), y: component(raw.y) };
@@ -24,10 +40,11 @@ export function tick(
   const step = scale(movement(intent.move), TUNING.attackerSpeed * TUNING.tickDuration);
   const moved = add(state.attacker.position, step);
   const r = TUNING.attackerRadius;
-  const position = clampToRect(moved, {
+  const onPitch = clampToRect(moved, {
     min: { x: r, y: r },
     max: { x: TUNING.pitchWidth - r, y: TUNING.pitchLength - r },
   });
+  const position = pushOutOfEllipse(onPitch, forbidden);
   return {
     state: {
       ...state,

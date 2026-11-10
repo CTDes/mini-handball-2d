@@ -27,3 +27,27 @@ export function clampToRect(p: Vec2, rect: Rect): Vec2 {
     y: Math.min(Math.max(p.y, rect.min.y), rect.max.y),
   };
 }
+
+/** Ellipse given by its centre and semi-axes (metres). */
+export interface Ellipse {
+  readonly centre: Vec2;
+  readonly rx: number;
+  readonly ry: number;
+}
+
+const ellipseValue = (p: Vec2, e: Ellipse): number =>
+  ((p.x - e.centre.x) / e.rx) ** 2 + ((p.y - e.centre.y) / e.ry) ** 2;
+
+/** True when `p` lies strictly inside the ellipse; points on the edge are outside. */
+export const insideEllipse = (p: Vec2, e: Ellipse): boolean => ellipseValue(p, e) < 1;
+
+/**
+ * Moves a point inside the ellipse along the ray from the centre onto the edge; any other
+ * point is returned unchanged. The centre itself goes out along +y (away from the goal line).
+ */
+export function pushOutOfEllipse(p: Vec2, e: Ellipse): Vec2 {
+  const v = ellipseValue(p, e);
+  if (v >= 1) return p;
+  if (v === 0) return { x: e.centre.x, y: e.centre.y + e.ry };
+  return add(e.centre, scale(subtract(p, e.centre), 1 / Math.sqrt(v)));
+}

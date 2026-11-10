@@ -1,12 +1,7 @@
-import type { Rect, Vec2 } from "./geometry";
+import type { Ellipse, Rect, Vec2 } from "./geometry";
 import { TUNING } from "./tuning";
 
-/** Ellipse given by its centre and semi-axes (metres). */
-export interface Ellipse {
-  readonly centre: Vec2;
-  readonly rx: number;
-  readonly ry: number;
-}
+export type { Ellipse };
 
 export interface Pitch {
   readonly width: number;

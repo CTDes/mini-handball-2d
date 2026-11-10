@@ -102,3 +102,15 @@ describe("insideRect", () => {
     expect(insideRect({ x: 4, y: 2 }, rect)).toBe(true);
   });
 });
+
+describe("architecture doc", () => {
+  it("lists each new geometry export in the geometry row", async () => {
+    const { readFileSync } = await import("node:fs");
+    const row = readFileSync("docs/architecture.md", "utf8")
+      .split("\n")
+      .find((l) => l.includes("`src/sim/geometry`"));
+    for (const name of ["dot", "reflect", "insideRect", "SegmentContact", "sweepSegmentCircle"]) {
+      expect(row).toContain(`\`${name}\``);
+    }
+  });
+});

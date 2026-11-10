@@ -43,7 +43,7 @@ describe("out", () => {
     ["left", -5, 13],
     ["right", 25, 13],
     ["bottom", 10, 25],
-    ["top", 10, -5],
+    ["top", 3, -5], // outside the posts: between them the goal rule applies
   ])("emits one out event on the first tick outside the %s edge", (_n, x, y) => {
     let s = shootAt(x, y);
     const outs: GameEvent[] = [];

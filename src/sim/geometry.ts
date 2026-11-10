@@ -55,3 +55,59 @@ export function pushOutOfEllipse(p: Vec2, e: Ellipse): Vec2 {
   if (v === 0) return { x: e.centre.x, y: e.centre.y + e.ry };
   return add(e.centre, scale(subtract(p, e.centre), 1 / Math.sqrt(v)));
 }
+
+export const dot = (a: Vec2, b: Vec2): number => a.x * b.x + a.y * b.y;
+
+/** Mirrors `v` about the unit normal `n`: `v - 2(v·n)n`. */
+export const reflect = (v: Vec2, n: Vec2): Vec2 => subtract(v, scale(n, 2 * dot(v, n)));
+
+/** True when `p` lies inside the rectangle; edges and corners count as inside. */
+export const insideRect = (p: Vec2, rect: Rect): boolean =>
+  p.x >= rect.min.x && p.x <= rect.max.x && p.y >= rect.min.y && p.y <= rect.max.y;
+
+/** First contact of a segment with a circle. */
+export interface SegmentContact {
+  /** Fraction along the segment, in [0, 1]. */
+  readonly t: number;
+  /** Contact point. */
+  readonly point: Vec2;
+  /** Outward unit normal, from the circle centre to the contact point. */
+  readonly normal: Vec2;
+}
+
+/**
+ * Sweeps the segment `from`→`to` against a circle and returns the first contact, or null.
+ * A segment starting strictly inside the circle contacts at t = 0. A tangent segment hits at the
+ * tangent point. A segment starting on the circle (within tolerance) only hits when it moves
+ * inward, so a ball continuing from a contact point after reflection is not caught again.
+ * When the start is the circle centre the normal is undefined: it is the reversed segment
+ * direction, or +y for a zero-length segment. Never throws.
+ */
+export function sweepSegmentCircle(
+  from: Vec2,
+  to: Vec2,
+  centre: Vec2,
+  radius: number,
+): SegmentContact | null {
+  const d = subtract(to, from);
+  const f = subtract(from, centre);
+  const a = dot(d, d);
+  const b = dot(f, d);
+  const c = dot(f, f) - radius * radius;
+
+  const startContact = (): SegmentContact => {
+    const n = length(f) > 0 ? normalize(f) : a > 0 ? normalize(scale(d, -1)) : { x: 0, y: 1 };
+    return { t: 0, point: from, normal: n };
+  };
+
+  if (c < -EDGE_TOLERANCE) return startContact();
+  if (c <= EDGE_TOLERANCE) return b < 0 ? startContact() : null;
+  if (a === 0) return null;
+
+  const disc = b * b - a * c;
+  if (disc < 0) return null;
+  const t = (-b - Math.sqrt(disc)) / a;
+  if (t < 0 || t > 1) return null;
+  const point = add(from, scale(d, t));
+  return { t, point, normal: normalize(subtract(point, centre)) };
+}

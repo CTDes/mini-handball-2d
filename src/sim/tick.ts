@@ -1,7 +1,10 @@
 import {
   add,
   clampToRect,
+  insideRect,
   length,
+  normalize,
+  subtract,
   pushOutOfEllipse,
   scale,
   type Ellipse,
@@ -13,8 +16,29 @@ import type { Rng } from "./rng";
 import { carriedBallPosition, type GameState } from "./state";
 import { TUNING } from "./tuning";
 
-/** Placeholder: no events exist yet in M1. */
-export type GameEvent = never;
+/** What happened in a tick. `post-hit` and `goal` arrive with the next ticket. */
+export type GameEvent =
+  | {
+      readonly type: "shot";
+      readonly position: Vec2;
+      readonly power: number;
+      readonly velocity: Vec2;
+    }
+  | { readonly type: "out"; readonly position: Vec2 }
+  | { readonly type: "play-reset"; readonly position: Vec2 };
+
+const pitchRect = {
+  min: { x: 0, y: 0 },
+  max: { x: TUNING.pitchWidth, y: TUNING.pitchLength },
+};
+const sweepTicks = Math.max(2, Math.round(TUNING.powerSweepDuration / TUNING.tickDuration));
+const pauseTicks = Math.max(1, Math.round(TUNING.resolvedPause / TUNING.tickDuration));
+
+/** Triangle wave: 0 at 0, 1 at half the sweep, 0 at the full sweep. */
+function powerAt(chargeTicks: number): number {
+  const phase = (chargeTicks % sweepTicks) / sweepTicks;
+  return phase <= 0.5 ? phase * 2 : (1 - phase) * 2;
+}
 
 const component = (n: number): number => (Number.isNaN(n) ? 0 : Math.min(Math.max(n, -1), 1));
 
@@ -52,14 +76,79 @@ export function tick(
     max: { x: TUNING.pitchWidth - r, y: TUNING.pitchLength - r },
   });
   const position = pushOutOfEllipse(onPitch, forbidden);
-  return {
-    state: {
-      ...state,
-      attacker: { ...state.attacker, position },
-      ball: { position: carriedBallPosition(position), held: true },
-      aim: aimPoint(intent.aim),
-      tick: state.tick + 1,
-    },
-    events: [],
+  const base = {
+    ...state,
+    attacker: { ...state.attacker, position },
+    aim: aimPoint(intent.aim),
+    tick: state.tick + 1,
   };
+  const carried = (): GameState["ball"] => ({
+    position: carriedBallPosition(position),
+    held: true,
+    velocity: { x: 0, y: 0 },
+  });
+
+  switch (state.phase) {
+    case "held":
+      if (intent.shootHeld) {
+        return {
+          state: { ...base, phase: "charging", power: 0, chargeTicks: 0, ball: carried() },
+          events: [],
+        };
+      }
+      return { state: { ...base, ball: carried() }, events: [] };
+    case "charging": {
+      if (intent.shootHeld) {
+        const chargeTicks = state.chargeTicks + 1;
+        return {
+          state: { ...base, chargeTicks, power: powerAt(chargeTicks), ball: carried() },
+          events: [],
+        };
+      }
+      // Direction from the attacker's position after this tick's movement.
+      const towards = subtract(base.aim, position);
+      const direction = normalize(
+        length(towards) === 0 ? subtract(TUNING.goalCentre, position) : towards,
+      );
+      const speed = TUNING.minShotSpeed + state.power * (TUNING.maxShotSpeed - TUNING.minShotSpeed);
+      const velocity = scale(direction, speed);
+      const ballPosition = add(position, scale(direction, TUNING.carryDistance));
+      return {
+        state: {
+          ...base,
+          phase: "flight",
+          chargeTicks: 0,
+          ball: { position: ballPosition, held: false, velocity },
+        },
+        events: [{ type: "shot", position: ballPosition, power: state.power, velocity }],
+      };
+    }
+    case "flight": {
+      const next = add(state.ball.position, scale(state.ball.velocity, TUNING.tickDuration));
+      if (insideRect(next, pitchRect)) {
+        return {
+          state: { ...base, ball: { position: next, held: false, velocity: state.ball.velocity } },
+          events: [],
+        };
+      }
+      return {
+        state: {
+          ...base,
+          phase: "resolved",
+          resolvedTicks: pauseTicks,
+          ball: { position: next, held: false, velocity: { x: 0, y: 0 } },
+        },
+        events: [{ type: "out", position: next }],
+      };
+    }
+    case "resolved": {
+      const resolvedTicks = state.resolvedTicks - 1;
+      if (resolvedTicks > 0) return { state: { ...base, resolvedTicks }, events: [] };
+      const ball = carried();
+      return {
+        state: { ...base, phase: "held", power: 0, resolvedTicks: 0, ball },
+        events: [{ type: "play-reset", position: ball.position }],
+      };
+    }
+  }
 }

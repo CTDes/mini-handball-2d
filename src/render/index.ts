@@ -22,6 +22,8 @@ const ATTACKER_OUTLINE = "#1a202c";
 const BALL_FILL = "#f7fafc";
 const AIM_LINE = "#fbd38d";
 const RETICLE_RADIUS = 0.25;
+const BAR_BACK = "#1a202c";
+const BAR_FILL = "#f56565";
 
 /** Canvas renderer: square pitch sized to the container, capped by the window height. */
 export function createRenderer(canvas: HTMLCanvasElement): {
@@ -104,7 +106,7 @@ export function createRenderer(canvas: HTMLCanvasElement): {
       ctx.arc(px(ball.x), px(ball.y), TUNING.ballRadius * k, 0, Math.PI * 2);
       ctx.fillStyle = BALL_FILL;
       ctx.fill();
-      if (state.ball.held) {
+      if (state.phase === "held" || state.phase === "charging") {
         ctx.beginPath();
         ctx.moveTo(px(x), px(y));
         ctx.lineTo(px(state.aim.x), px(state.aim.y));
@@ -116,6 +118,19 @@ export function createRenderer(canvas: HTMLCanvasElement): {
         ctx.beginPath();
         ctx.arc(px(state.aim.x), px(state.aim.y), RETICLE_RADIUS * k, 0, Math.PI * 2);
         ctx.stroke();
+      }
+      if (state.phase === "charging") {
+        const w = TUNING.powerBarWidth * k;
+        const h = TUNING.powerBarHeight * k;
+        const bx = px(x) - w / 2;
+        const by = px(y - TUNING.powerBarOffset) - h / 2;
+        ctx.fillStyle = BAR_BACK;
+        ctx.fillRect(bx, by, w, h);
+        ctx.fillStyle = BAR_FILL;
+        ctx.fillRect(bx, by, w * state.power, h);
+        ctx.strokeStyle = OUTLINE;
+        ctx.lineWidth = Math.max(1, k * 0.03);
+        ctx.strokeRect(bx, by, w, h);
       }
     },
   };

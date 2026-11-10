@@ -21,4 +21,15 @@ export const TUNING = {
   attackerSpeed: 6,
   tickDuration: 1 / 60,
   attackerStart: { x: 10, y: 13 },
+  /** Ball speed at power 0 and at power 1 (m/s). */
+  minShotSpeed: 8,
+  maxShotSpeed: 22,
+  /** Seconds for a full power cycle 0 -> 1 -> 0 while the shoot control is held. */
+  powerSweepDuration: 1.2,
+  /** Seconds the out ball rests before the ball returns to the attacker (converted to ticks). */
+  resolvedPause: 1,
+  /** Power bar size and offset above the attacker's centre, in metres. */
+  powerBarWidth: 1.6,
+  powerBarHeight: 0.25,
+  powerBarOffset: 0.9,
 } as const;

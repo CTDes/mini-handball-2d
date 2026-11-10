@@ -7,15 +7,26 @@ export interface Attacker {
 
 export interface Ball {
   readonly position: Vec2;
-  /** Always true in M1. */
+  /** True while carried by the attacker (phases `held` and `charging`). */
   readonly held: boolean;
+  /** Metres per second; zero unless in flight. */
+  readonly velocity: Vec2;
 }
+
+export type PlayPhase = "held" | "charging" | "flight" | "resolved";
 
 export interface GameState {
   readonly attacker: Attacker;
   readonly ball: Ball;
   /** Where the human aims, in pitch metres. May lie beyond the pitch edges. */
   readonly aim: Vec2;
+  readonly phase: PlayPhase;
+  /** Power bar, 0..1. */
+  readonly power: number;
+  /** Ticks spent charging; drives the power triangle wave. */
+  readonly chargeTicks: number;
+  /** Ticks left in `resolved` before the play resets. */
+  readonly resolvedTicks: number;
   readonly tick: number;
   readonly seed: number;
 }
@@ -30,7 +41,11 @@ export function initialState(seed: number): GameState {
   const start = { ...TUNING.attackerStart };
   return {
     attacker: { position: start },
-    ball: { position: carriedBallPosition(start), held: true },
+    ball: { position: carriedBallPosition(start), held: true, velocity: { x: 0, y: 0 } },
+    phase: "held",
+    power: 0,
+    chargeTicks: 0,
+    resolvedTicks: 0,
     aim: { ...TUNING.goalCentre },
     tick: 0,
     seed,

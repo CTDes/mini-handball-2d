@@ -67,6 +67,85 @@ function movement(raw: Vec2): Vec2 {
   return l > 1 ? scale(v, 1 / l) : v;
 }
 
+/** Releases the shot from the attacker's position after this tick's movement. */
+function releaseShot(
+  state: GameState,
+  base: GameState,
+  position: Vec2,
+): { state: GameState; events: GameEvent[] } {
+  // Direction from the attacker's position after this tick's movement.
+  const towards = subtract(base.aim, position);
+  const direction = normalize(
+    length(towards) === 0 ? subtract(TUNING.goalCentre, position) : towards,
+  );
+  const speed = TUNING.minShotSpeed + state.power * (TUNING.maxShotSpeed - TUNING.minShotSpeed);
+  const velocity = scale(direction, speed);
+  const ballPosition = add(position, scale(direction, TUNING.carryDistance));
+  return {
+    state: {
+      ...base,
+      ...recordShot(state),
+      phase: "flight",
+      chargeTicks: 0,
+      shootArmed: false,
+      ball: { position: ballPosition, held: false, velocity },
+    },
+    events: [{ type: "shot", position: ballPosition, power: state.power, velocity }],
+  };
+}
+
+/** One tick of swept flight: post rebounds, then goal or out. */
+function flightStep(state: GameState, base: GameState): { state: GameState; events: GameEvent[] } {
+  const events: GameEvent[] = [];
+  const reach = TUNING.postRadius + TUNING.ballRadius;
+  let at = state.ball.position;
+  let velocity = state.ball.velocity;
+  let remaining = TUNING.tickDuration;
+  let settled = false;
+  for (let contacts = 0; contacts < maxContacts && !settled; contacts++) {
+    const target = add(at, scale(velocity, remaining));
+    let first: SegmentContact | null = null;
+    for (const post of PITCH.posts) {
+      const hit = sweepSegmentCircle(at, target, post, reach);
+      if (hit && (first === null || hit.t < first.t)) first = hit;
+    }
+    if (first === null) {
+      at = target;
+      settled = true;
+    } else {
+      velocity = reflect(velocity, first.normal);
+      remaining *= 1 - first.t;
+      at = first.point;
+      events.push({ type: "post-hit", position: first.point });
+    }
+  }
+  const inMouth =
+    at.y < 0 &&
+    at.x > PITCH.posts[0].x + TUNING.postRadius &&
+    at.x < PITCH.posts[1].x - TUNING.postRadius;
+  if (inMouth && at.y <= -TUNING.ballRadius) {
+    events.push({ type: "goal", position: at });
+  } else if (!inMouth && !insideRect(at, pitchRect)) {
+    events.push({ type: "out", position: at });
+  } else {
+    return {
+      state: { ...base, ball: { position: at, held: false, velocity } },
+      events,
+    };
+  }
+  const scored = events.some((e) => e.type === "goal");
+  return {
+    state: {
+      ...base,
+      ...(scored ? recordGoal(state) : {}),
+      phase: "resolved",
+      resolvedTicks: pauseTicks,
+      ball: { position: at, held: false, velocity: { x: 0, y: 0 } },
+    },
+    events,
+  };
+}
+
 export function tick(
   state: GameState,
   intent: Intent,
@@ -116,76 +195,10 @@ export function tick(
           events: [],
         };
       }
-      // Direction from the attacker's position after this tick's movement.
-      const towards = subtract(base.aim, position);
-      const direction = normalize(
-        length(towards) === 0 ? subtract(TUNING.goalCentre, position) : towards,
-      );
-      const speed = TUNING.minShotSpeed + state.power * (TUNING.maxShotSpeed - TUNING.minShotSpeed);
-      const velocity = scale(direction, speed);
-      const ballPosition = add(position, scale(direction, TUNING.carryDistance));
-      return {
-        state: {
-          ...base,
-          ...recordShot(state),
-          phase: "flight",
-          chargeTicks: 0,
-          shootArmed: false,
-          ball: { position: ballPosition, held: false, velocity },
-        },
-        events: [{ type: "shot", position: ballPosition, power: state.power, velocity }],
-      };
+      return releaseShot(state, base, position);
     }
-    case "flight": {
-      const events: GameEvent[] = [];
-      const reach = TUNING.postRadius + TUNING.ballRadius;
-      let at = state.ball.position;
-      let velocity = state.ball.velocity;
-      let remaining = TUNING.tickDuration;
-      let settled = false;
-      for (let contacts = 0; contacts < maxContacts && !settled; contacts++) {
-        const target = add(at, scale(velocity, remaining));
-        let first: SegmentContact | null = null;
-        for (const post of PITCH.posts) {
-          const hit = sweepSegmentCircle(at, target, post, reach);
-          if (hit && (first === null || hit.t < first.t)) first = hit;
-        }
-        if (first === null) {
-          at = target;
-          settled = true;
-        } else {
-          velocity = reflect(velocity, first.normal);
-          remaining *= 1 - first.t;
-          at = first.point;
-          events.push({ type: "post-hit", position: first.point });
-        }
-      }
-      const inMouth =
-        at.y < 0 &&
-        at.x > PITCH.posts[0].x + TUNING.postRadius &&
-        at.x < PITCH.posts[1].x - TUNING.postRadius;
-      if (inMouth && at.y <= -TUNING.ballRadius) {
-        events.push({ type: "goal", position: at });
-      } else if (!inMouth && !insideRect(at, pitchRect)) {
-        events.push({ type: "out", position: at });
-      } else {
-        return {
-          state: { ...base, ball: { position: at, held: false, velocity } },
-          events,
-        };
-      }
-      const scored = events.some((e) => e.type === "goal");
-      return {
-        state: {
-          ...base,
-          ...(scored ? recordGoal(state) : {}),
-          phase: "resolved",
-          resolvedTicks: pauseTicks,
-          ball: { position: at, held: false, velocity: { x: 0, y: 0 } },
-        },
-        events,
-      };
-    }
+    case "flight":
+      return flightStep(state, base);
     case "resolved": {
       const resolvedTicks = state.resolvedTicks - 1;
       if (resolvedTicks > 0) return { state: { ...base, resolvedTicks }, events: [] };

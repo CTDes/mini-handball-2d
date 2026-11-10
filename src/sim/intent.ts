@@ -1,6 +1,6 @@
 import type { Vec2 } from "./geometry";
 
-/** What the human asks for in a tick.  */
+/** What the human asks for in a tick. */
 export interface Intent {
   readonly move: Vec2;
   readonly aim: Vec2;

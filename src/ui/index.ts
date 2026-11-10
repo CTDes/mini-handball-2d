@@ -27,7 +27,10 @@ export function createUi(
     button.blur(); // keep Space for shooting
     onRestart();
   });
-  footer.replaceChildren(button);
+  const hint = document.createElement("p");
+  hint.className = "mt-2 text-sm text-slate-400";
+  hint.textContent = texts.hint;
+  footer.replaceChildren(button, hint);
 
   let shown = "";
   return {
